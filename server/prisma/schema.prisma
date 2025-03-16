@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  Pending
+  Dispatched
+  Delivered
+}
+
+enum Role {
+  Admin
+  Manager
+  CounterMan
+  Worker
+}
+
+enum ReaderType {
+  Writer
+  Reader
+}
+
+model User {
+  id             String          @id @default(uuid())
+  firstName      String
+  lastName       String
+  email          String          @unique
+  password       String
+  profilePicture String?
+  role           Role
+  warehouseUsers WarehouseUser[]
+  parcelStatuses ParcelStatus[]
+}
+
+model ParcelDetails {
+  id                   String         @id @default(cuid())
+  parcelName           String
+  parcelPrice          String
+  parcelDate           DateTime       @default(now())
+  parcelTrackingNumber String
+  parcelWeight         Float
+  senderFirstName      String
+  senderLastName       String
+  senderEmail          String
+  senderPhoneNumber    String
+  senderAddress        String
+  receiverFirstName    String
+  receiverLastName     String
+  receiverEmail        String
+  receiverPhoneNumber  String
+  receiverAddress      String
+  rfidTagId            String         @unique
+  warehouse            Warehouse      @relation(fields: [warehouseId], references: [id])
+  warehouseId          String
+  parcelStatuses       ParcelStatus[]
+  createdAt            DateTime       @default(now())
+}
+
+model ParcelStatus {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  parcelId  String
+  parcel    ParcelDetails @relation(fields: [parcelId], references: [id])
+  status    Status
+  createdAt DateTime      @default(now())
+}
+
+model WarehouseUser {
+  userId      String
+  warehouseId String
+
+  user      User      @relation(fields: [userId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  isPrimary Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@id([userId, warehouseId])
+  @@unique([userId, warehouseId])
+}
+
+model Warehouse {
+  id               String          @id @default(uuid())
+  warehouseName    String          @unique
+  warehouseAddress String          @unique
+  parcels          ParcelDetails[]
+  readers          Reader[]
+  warehouseUsers   WarehouseUser[]
+}
+
+model Reader {
+  id              String     @id @default(uuid())
+  readerServerId  String     @unique
+  readerYearModel BigInt?
+  serialNumber    String?    @unique
+  address         String
+  role            ReaderType
+  warehouseId     String
+  warehouse       Warehouse  @relation(fields: [warehouseId], references: [id])
+  createdAt       DateTime   @default(now())
+
+  @@index([readerServerId])
+}
