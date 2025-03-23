@@ -19,7 +19,7 @@ export const connectReader = async (baseIo: SocketServer, socket: Socket, props:
             }
         })
 
-        const reader = readers.find((reader) => reader.role === props.readerRole)
+        const reader = readers.find((reader) => reader.role === props?.readerRole)
 
         if (reader) {
             const readerServerStringified = await redisClient.get(`reader:${reader.readerServerId}`)

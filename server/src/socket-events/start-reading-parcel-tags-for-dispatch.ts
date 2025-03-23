@@ -8,7 +8,7 @@ import { Reader } from "../types/reader";
 type Props = { readerRole: "Reader" | "Writer" }
 
 
-export const startMonitoring = async (baseIo: SocketServer, socket: Socket, props: Props) => {
+export const startReadingParcelTagsForDispatch = async (baseIo: SocketServer, socket: Socket, props: Props) => {
 
     if (!socket.user)
         return
@@ -18,11 +18,11 @@ export const startMonitoring = async (baseIo: SocketServer, socket: Socket, prop
     const warehouseUser = socket.user.warehouseUsers.find((warehouseUser) => warehouseUser.warehouse.id === warehouseId)
 
     if (!warehouseUser) {
-        console.log("warehouse user not found in start-monitoring event on server")
+        console.log("warehouse user not found in 'start Reading Parcel Tags For Dispatch'  event on server")
         return;
     }
-    if (props.readerRole !== "Reader") {
-        console.log("reader role is not Reader in start-monitoring event on server")
+    if (props.readerRole !== "Writer") {
+        console.log("reader role is not 'writer' in 'start Reading Parcel Tags For Dispatch' event on server")
         return
     }
 
@@ -35,7 +35,7 @@ export const startMonitoring = async (baseIo: SocketServer, socket: Socket, prop
     const reader = readers.find((reader) => reader.role === props?.readerRole)
 
     if (!reader) {
-        console.log("reader with role 'Reader' is not found in start-monitoring event on server")
+        console.log("reader with role 'Reader' is not found in 'start Reading Parcel Tags For Dispatch' event on server")
         return
     }
 
@@ -45,7 +45,7 @@ export const startMonitoring = async (baseIo: SocketServer, socket: Socket, prop
 
         const readerServerParsed = JSON.parse(readerServerStringified) as { reader: Reader; readerSeverSocketId: string }
 
-        baseIo.to(readerServerParsed.readerSeverSocketId).emit("server-to-reader:start-monitoring", {
+        baseIo.to(readerServerParsed.readerSeverSocketId).emit("server-to-reader:start-reading-parcel-tags-for-dispatch", {
             userId: socket.user.id,
             socketId: socket.id
         })

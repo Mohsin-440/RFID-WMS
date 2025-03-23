@@ -4,12 +4,16 @@ import { disconnectReader } from "../events/disconnect-reader";
 import { startReadingTags } from "../events/startReadingTags";
 import { stopReadingTags } from "../events/stopReadingTags";
 import { startMonitoring } from "../events/startMonitoring";
+import { startReadingParcelTagsForDispatch } from "../events/startReadingParcelTagsForDispatch";
 
 
 export const events = (socket: Socket) => {
     socket.on("server-to-reader:connect-reader", connectReaderEvent)
     socket.on("server-to-reader:disconnect-reader", disconnectReader)
     socket.on("server-to-reader:start-reading-tags", startReadingTags)
-    socket.on("server-to-reader:start-monitoring", startMonitoring)
     socket.on("server-to-reader:stop-reading-tags", stopReadingTags)
+
+    socket.on("server-to-reader:start-monitoring", startMonitoring)
+
+    socket.on("server-to-reader:start-reading-parcel-tags-for-dispatch", startReadingParcelTagsForDispatch)
 }

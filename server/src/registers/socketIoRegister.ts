@@ -12,6 +12,8 @@ import { tagsMonitored } from "../socket-events/tags-monitored"
 import { startMonitoring } from "../socket-events/start-monitoring"
 import { redisClient } from "../utils/redis"
 import { getCachedUser } from "../utils/getCachedUser"
+import { startReadingParcelTagsForDispatch } from "../socket-events/start-reading-parcel-tags-for-dispatch"
+import { parcelTagsReadForDispatch } from "../socket-events/parcelTagsReadForDispatch"
 
 
 export const socketIoRegister = (baseIo: SocketServer) => {
@@ -39,9 +41,21 @@ export const socketIoRegister = (baseIo: SocketServer) => {
             socket.on("reader-to-server:tags-monitored", async (prop) => await tagsMonitored(baseIo, socket, prop))
             // monitoring //
 
+
+            // read for dispatch
+            socket.on("client-to-server:start-reading-parcel-tags-for-dispatch", async (prop) =>
+                await startReadingParcelTagsForDispatch(baseIo, socket, prop))
+
+            socket.on("reader-to-server:parcel-tags-read-for-dispatch", async (prop) => await parcelTagsReadForDispatch(baseIo, socket, prop))
+            // read for dispatch //
+
             socket.on("client-to-server:stop-reading-tags", async (prop) => await stopReadingTags(baseIo, socket, prop))
 
             socket.on("reader-to-server:tags-reading-stopped", async (prop) => await tagsReadingStopped(baseIo, socket, prop))
+
+
+
+
             socket.on("disconnect", async () => {
                 try {
                     const socketEntityStringed = await redisClient.get(`wsm-socketId:${socket.id}`)

@@ -24,7 +24,7 @@ export const startReadingTags = async (baseIo: SocketServer, socket: Socket, pro
             }
         })
 
-        const reader = readers.find((reader) => reader.role === props.readerRole)
+        const reader = readers.find((reader) => reader.role === props?.readerRole)
 
         if (reader) {
 

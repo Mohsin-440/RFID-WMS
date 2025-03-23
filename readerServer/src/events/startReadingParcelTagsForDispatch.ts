@@ -5,7 +5,7 @@ import { clientSocket } from "../app";
 import { redisClient } from "../libs/redis";
 import { ReaderDetails } from "../types/readerDetails";
 
-export const startMonitoring = async (props: { userId: string, socketId: string }) => {
+export const startReadingParcelTagsForDispatch = async (props: { userId: string, socketId: string }) => {
     try {
         const readingTags = await redisClient.get("reading-tags");
         if (Number(readingTags)) {
@@ -70,8 +70,8 @@ export const startMonitoring = async (props: { userId: string, socketId: string 
                     socketId: props.socketId,
                     readerDetails: parsedReaderDetails
                 }
-
-                clientSocket.emit("reader-to-server:tags-monitored", resBody)
+                // console.log(resBody)
+                clientSocket.emit("reader-to-server:parcel-tags-read-for-dispatch", resBody)
             }
         })
 

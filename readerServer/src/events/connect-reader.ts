@@ -8,7 +8,7 @@ export async function connectReaderEvent(props: { userId: string }) {
 
     if (connecting === true)
         return
-    console.log({ connecting })
+    console.log("reader connection requested")
     try {
         connecting = true;
         const readerDetails = await redisClient.get("reader-details")
@@ -27,6 +27,7 @@ export async function connectReaderEvent(props: { userId: string }) {
 
         if (!prop)
             throw new Error("reader prop empty")
+        console.log("reader connected")
         await clientSocket.emit("reader-to-server:reader-connected", { readerDetails: prop, userId: props.userId });
 
 

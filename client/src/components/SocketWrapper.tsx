@@ -17,7 +17,7 @@ function SocketWrapperComp({ children }: { children: React.ReactNode }) {
     const params = useParams<{ warehouseId: string }>()
     const isMounted = useIsMounted()
     const { userInfo, setUserInfo } = useUserStore();
-
+    console.log(userInfo)
     useEffect(() => {
         if (!socket && isMounted && userInfo) {
             const socketIo = io(process.env.NEXT_PUBLIC_SERVER_BASE_URL, {

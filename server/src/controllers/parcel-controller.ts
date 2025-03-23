@@ -200,20 +200,57 @@ export const allParcels = async (
 export const singleParcel = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const parcelStringed = await redisClient.get(`wsm-parcel:${id}`)
+
+    if (parcelStringed) {
+      try {
+        const parcel = JSON.parse(parcelStringed) as ParcelDetailsWithStatus
+        res.status(200).json({
+          success: true,
+          parcel,
+          parcelStatus: parcel.parcelStatuses[0].status
+        });
+
+        return
+      } catch (error) {
+
+      }
+      
+    }
+
     const parcel = await db.parcelDetails.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        parcelTrackingNumber: true,
+        parcelWeight: true,
+        parcelDate: true,
+        rfidTagId: true,
+        warehouseId: true,
+        createdAt: true,
+        parcelName: true,
+        parcelPrice: true,
+        receiverAddress: true,
+        receiverEmail: true,
+        receiverFirstName: true,
+        receiverLastName: true,
+        receiverPhoneNumber: true,
+        senderAddress: true,
+        senderEmail: true,
+        senderFirstName: true,
+        senderLastName: true,
+        senderPhoneNumber: true,
         parcelStatuses: {
-          orderBy: {
-            createdAt: "desc"
-          }
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+          },
+          orderBy: [{ createdAt: "desc" }],
+
         }
       }
     });
-    const parcelStatus = await db.parcelStatus.findMany({
-      where: { parcelId: id },
-      orderBy: { createdAt: "desc" },
-    })
 
     if (!parcel) {
       res.status(404).json({
@@ -224,8 +261,9 @@ export const singleParcel = async (req: Request, res: Response) => {
       res.status(200).json({
         success: true,
         parcel,
-        parcelStatus: parcelStatus[0].status
       });
+      await redisClient.set(`wsm-parcel:${parcel.id}`, JSON.stringify(parcel))
+      await redisClient.set(`wsm-parcelFromTagId:${parcel.rfidTagId}`, JSON.stringify(parcel))
     }
   } catch (error) {
     console.error("Error retrieving parcel:", error);
@@ -290,7 +328,7 @@ export const updateParcel = async (req: Request, res: Response) => {
 
 
 
-    await db.parcelDetails.update({
+    const updatedParcel = await db.parcelDetails.update({
       where: { id },
       data: {
         parcelDate: formattedDate,
@@ -309,12 +347,47 @@ export const updateParcel = async (req: Request, res: Response) => {
         senderLastName: parcelDetails.senderLastName,
         senderPhoneNumber: parcelDetails.senderPhoneNumber,
       },
+      select: {
+        id: true,
+        parcelTrackingNumber: true,
+        parcelWeight: true,
+        parcelDate: true,
+        rfidTagId: true,
+        warehouseId: true,
+        createdAt: true,
+        parcelName: true,
+        parcelPrice: true,
+        receiverAddress: true,
+        receiverEmail: true,
+        receiverFirstName: true,
+        receiverLastName: true,
+        receiverPhoneNumber: true,
+        senderAddress: true,
+        senderEmail: true,
+        senderFirstName: true,
+        senderLastName: true,
+        senderPhoneNumber: true,
+        parcelStatuses: {
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+          },
+          orderBy: [{ createdAt: "desc" }],
+
+        }
+      }
     });
+
+    await redisClient.set(`wsm-parcel:${updatedParcel.id}`, JSON.stringify(updatedParcel))
+    await redisClient.set(`wsm-parcelFromTagId:${updatedParcel.rfidTagId}`, JSON.stringify(updatedParcel))
 
     res.status(200).json({
       success: true,
       message: "Parcel updated successfully",
+      parcel: updatedParcel
     });
+
   } catch (error) {
     console.error("Error updating parcel:", error);
     res.status(500).json({
@@ -407,10 +480,10 @@ export const updateDispatchParcelsStatus = async (req: Request, res: Response): 
     // Find all parcels that have these tag IDs
     const existingParcels = await db.parcelDetails.findMany({
       where: {
-        rfidTagId: { in: tagIds }, // Only fetch parcels with matching tag IDs
+        rfidTagId: { in: tagIds },
       },
       include: {
-        parcelStatuses: true, // Include status history to check current status
+        parcelStatuses: true,
       },
     });
 
@@ -422,7 +495,6 @@ export const updateDispatchParcelsStatus = async (req: Request, res: Response): 
       return;
     }
 
-    // Filter parcels that are currently in "Pending" status
     const parcelsToUpdate = existingParcels.filter((parcel) => {
       const lastStatus = parcel.parcelStatuses?.[parcel.parcelStatuses.length - 1]?.status;
       return lastStatus === "Pending";
@@ -436,16 +508,14 @@ export const updateDispatchParcelsStatus = async (req: Request, res: Response): 
       return;
     }
 
-    // Update status of eligible parcels to "Dispatched"
     await db.parcelStatus.createMany({
       data: parcelsToUpdate.map(parcel => ({
         status: "Dispatched",
         parcelId: parcel.id,
-        userId: req.user?.id as string, // Assuming user ID is available
+        userId: req.user?.id as string,
       })),
     });
 
-    // Extract updated parcel IDs and tag IDs
     const updatedParcels = parcelsToUpdate.map(parcel => ({
       parcelTrackingNumber: parcel.parcelTrackingNumber,
       tagId: parcel.rfidTagId,
@@ -456,6 +526,49 @@ export const updateDispatchParcelsStatus = async (req: Request, res: Response): 
       message: `${parcelsToUpdate.length} parcel(s) updated to Dispatched`,
       updatedParcels,
     });
+
+    for (const existingParcel of existingParcels) {
+      const updatedParcel = await db.parcelDetails.findUnique({
+        where: {
+          id: existingParcel.id
+        },
+        select: {
+          id: true,
+          parcelTrackingNumber: true,
+          parcelWeight: true,
+          parcelDate: true,
+          rfidTagId: true,
+          warehouseId: true,
+          createdAt: true,
+          parcelName: true,
+          parcelPrice: true,
+          receiverAddress: true,
+          receiverEmail: true,
+          receiverFirstName: true,
+          receiverLastName: true,
+          receiverPhoneNumber: true,
+          senderAddress: true,
+          senderEmail: true,
+          senderFirstName: true,
+          senderLastName: true,
+          senderPhoneNumber: true,
+          parcelStatuses: {
+            select: {
+              id: true,
+              status: true,
+              createdAt: true,
+            },
+            orderBy: [{ createdAt: "desc" }],
+
+          }
+        }
+      });
+      if (updatedParcel) {
+        await redisClient.set(`wsm-parcel:${updatedParcel.id}`, JSON.stringify(updatedParcel))
+        await redisClient.set(`wsm-parcelFromTagId:${updatedParcel.rfidTagId}`, JSON.stringify(updatedParcel))
+      }
+
+    }
 
   } catch (error) {
     console.error("Error updating parcel statuses:", error);

@@ -54,6 +54,11 @@ const TagsMonitor = () => {
     const currentWarehouse = userInfo?.warehouseUsers.find((warehouseUser) => warehouseUser.warehouse.id === params.warehouseId)
     const readers = currentWarehouse?.warehouse.readers?.filter((reader) => reader.role === "Reader")
 
+    // useEffect(() => {
+    //     setReaderConnecting(false)
+    //     setReaderConnected(false)
+    //     setReadingTags(false)
+    // }, [readers])
 
     useEffect(() => {
 
@@ -70,7 +75,7 @@ const TagsMonitor = () => {
         }
     }, [readerConnected, readerConnecting, readers, readers?.length, socket, socketStatuses.connected])
 
-    // console.log({ readerConnected, readerConnecting, readingTags, socket, readers, tags })
+    console.log({ readerConnected, readerConnecting, readingTags, socket, readers, tags })
 
     const onReaderConnected = () => {
         setReaderConnecting(false)
@@ -101,6 +106,10 @@ const TagsMonitor = () => {
         const tempTags = structuredClone(tags)
 
         for (const datum of data) {
+            if (datum.parcel.parcelStatuses[0].status === "Dispatched")
+                continue
+
+
             const checkTagsExist = tempTags.find((tag) => tag.epcId === datum.epcId)
             if (!checkTagsExist) {
                 tempTags.push({ ...datum, timeAdded: new Date() })
@@ -213,6 +222,7 @@ const TagsMonitor = () => {
             }
         }
     }, [])
+
 
     return <>
         <Dialog open={dialogOpen}>

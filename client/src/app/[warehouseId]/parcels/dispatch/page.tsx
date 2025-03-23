@@ -11,15 +11,7 @@ import { Loader2 } from 'lucide-react';
 import { DispatchDataTable } from './DispatchedDataTable';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
-
-type Tag = {
-    epcId: string;
-    readCount: number;
-    rssiValue: number;
-    antennaId: number;
-    frequency: number;
-    timestamp: number;
-};
+import { TagWithParcelDetails } from "@wsm/shared/types/tagWithParcelDetails";
 
 type ReaderDetails = {
     readerServerId: string;
@@ -36,11 +28,11 @@ const ParcelDispatch = () => {
     const [connectingReader, setConnectingReader] = useState(false);
     const [readingTags, setReadingTags] = useState(false);
     const [connected, setConnected] = useState(false);
-    const [tags, setTags] = useState<Tag[]>([]);
+    const [tagsWithParcelDetails, setTagsWithParcelDetails] = useState<TagWithParcelDetails[]>([]);
     const [dispatchedIds, setDispatchedIds] = useState<string[]>([]);
 
     const handleRemoveTag = (epcId: string) => {
-        setTags((prevTags) => prevTags.filter(tag => tag.epcId !== epcId));
+        setTagsWithParcelDetails((prevTags) => prevTags.filter(tag => tag.epcId !== epcId));
     };
 
     const columns = DispatchedParcelsColumns(handleRemoveTag);
@@ -64,7 +56,7 @@ const ParcelDispatch = () => {
 
     const onClickReadingTags = () => {
         setReadingTags(true);
-        socket?.emit("client-to-server:start-reading-tags", { readerRole: "Writer" });
+        socket?.emit("client-to-server:start-reading-parcel-tags-for-dispatch", { readerRole: "Writer" });
     };
 
     const onClickStopReadingTags = () => {
@@ -75,14 +67,15 @@ const ParcelDispatch = () => {
         setReadingTags(false);
     };
 
-    const onTagsRead = useCallback((data: Tag[]) => {
+    const onTagsRead = useCallback((data: TagWithParcelDetails[]) => {
+
         if (!data.length) return;
 
-        setTags((prevTags) => {
-            const updatedTags = [...prevTags];
+        setTagsWithParcelDetails((prevTags) => {
+            const updatedTags = structuredClone(prevTags);
 
             data.forEach(tag => {
-                if (tag.epcId.length === 24 && tag.rssiValue >= -200) {
+                if (tag.epcId.length === 24 && (-1 * tag.rssiValue) >= 200) {
                     const existingTagIndex = updatedTags.findIndex(t => t.epcId === tag.epcId);
                     if (existingTagIndex !== -1) {
                         updatedTags[existingTagIndex].readCount += 1;
@@ -91,14 +84,22 @@ const ParcelDispatch = () => {
                     }
                 }
             });
-
             return updatedTags;
         });
-    }, []);
+        if (!connected) {
+            setConnected(true)
+        }
+        if (connectingReader) {
+            setConnectingReader(false)
+        }
+        if (!readingTags) {
+            setReadingTags(true)
+        }
+    }, [connected, connectingReader, readingTags]);
 
     const handleDispatchAllParcels = async () => {
         try {
-            const tagIds = tags.map(tag => tag.epcId);
+            const tagIds = tagsWithParcelDetails.map(tag => tag.epcId);
             console.log("in frontend dispatch parcels")
             const updatedParcelsStatus = await axios.post(
                 `http://localhost:4000/api/v1/parcel/dispatch-parcels`,
@@ -142,7 +143,7 @@ const ParcelDispatch = () => {
     useEffect(() => {
         if (dispatchedIds.length > 0) {
             setTimeout(() => {
-                setTags((prevTags) => prevTags.filter(tag => !dispatchedIds.includes(tag.epcId)));
+                setTagsWithParcelDetails((prevTags) => prevTags.filter(tag => !dispatchedIds.includes(tag.epcId)));
             }, 5000);
         }
     }, [dispatchedIds]);
@@ -151,13 +152,13 @@ const ParcelDispatch = () => {
         if (socket) {
             socket.on("server-to-client:reader-connected", onReaderConnected);
             socket.on("server-to-client:reader-disconnected", onReaderDisconnected);
-            socket.on("server-to-client:tags-read", onTagsRead);
+            socket.on("server-to-client:parcel-tags-read-for-dispatch", onTagsRead);
             socket.on("server-to-client:tags-reading-stopped", onTagsReadingStopped);
 
             return () => {
                 socket.off("server-to-client:reader-connected", onReaderConnected);
                 socket.off("server-to-client:reader-disconnected", onReaderDisconnected);
-                socket.off("server-to-client:tags-read", onTagsRead);
+                socket.off("server-to-client:parcel-tags-read-for-dispatch", onTagsRead);
                 socket.off("server-to-client:tags-reading-stopped", onTagsReadingStopped);
             };
         }
@@ -189,7 +190,7 @@ const ParcelDispatch = () => {
                             )}
                         </div>
                         {
-                            tags.length > 0 && (
+                            tagsWithParcelDetails.length > 0 && (
                                 <div className="p-5 w-fit">
                                     <Button className="px-3 my-2" onClick={handleDispatchAllParcels}>Dispatch All Parcels</Button>
                                 </div>
@@ -199,7 +200,7 @@ const ParcelDispatch = () => {
 
                     <div className="px-10 py-5 bg-white m-5 rounded-lg">
                         <h1 className="text-2xl font-bold py-2">Parcels Dispatched</h1>
-                        <DispatchDataTable columns={columns} data={tags} dispatchedIds={dispatchedIds} />
+                        <DispatchDataTable columns={columns} data={tagsWithParcelDetails} dispatchedIds={dispatchedIds} />
                     </div>
                 </>
             </Authorization>

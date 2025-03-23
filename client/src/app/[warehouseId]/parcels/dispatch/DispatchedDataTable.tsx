@@ -24,11 +24,8 @@ interface DataTableProps<TData> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function DispatchDataTable<TData extends Record<string, any>>({
-  dispatchedIds,
-  columns,
-  data = [],
-}: DataTableProps<TData>) {
+export function DispatchDataTable<TData extends Record<string, any>>({ dispatchedIds, columns, data = [], }: DataTableProps<TData>) {
+  
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = React.useState("");
 
