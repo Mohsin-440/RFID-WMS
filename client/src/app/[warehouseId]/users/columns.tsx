@@ -20,6 +20,16 @@ export const columns: ColumnDef<User>[] = [
     header: "Profile Picture",
     cell: ({ getValue }) => {
       const profilePicture = getValue() as string;
+
+      // If no profile picture exists or it's an empty string
+      if (!profilePicture) {
+        return (
+          <div >
+            <CircleUserRound className="h-9 w-9 text-gray-400" />
+          </div>
+        );
+      }
+
       return (
         <Image
           src={"http://localhost:4000/" + profilePicture} // Directly using the full URL

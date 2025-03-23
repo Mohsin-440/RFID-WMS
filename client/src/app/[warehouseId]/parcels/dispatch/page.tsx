@@ -12,6 +12,7 @@ import { DispatchDataTable } from './DispatchedDataTable';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { TagWithParcelDetails } from "@wsm/shared/types/tagWithParcelDetails";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type ReaderDetails = {
     readerServerId: string;
@@ -192,7 +193,26 @@ const ParcelDispatch = () => {
                         {
                             tagsWithParcelDetails.length > 0 && (
                                 <div className="p-5 w-fit">
-                                    <Button className="px-3 my-2" onClick={handleDispatchAllParcels}>Dispatch All Parcels</Button>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div> {/* Wrapper div needed because disabled buttons can't trigger tooltips */}
+                                                    <Button
+                                                        className="px-3 my-2"
+                                                        onClick={handleDispatchAllParcels}
+                                                        disabled={readingTags}
+                                                    >
+                                                        Dispatch All Parcels
+                                                    </Button>
+                                                </div>
+                                            </TooltipTrigger>
+                                            {readingTags && (
+                                                <TooltipContent className='bg-red-500' side='right'>
+                                                    <p>Please stop scanning first to dispatch parcels</p>
+                                                </TooltipContent>
+                                            )}
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </div>
                             )
                         }

@@ -12,7 +12,7 @@ export const ParcelColumns = (): ColumnDef<Parcel>[] => {
     {
       accessorKey: "id",
       header: "ID",
-      cell: ({ row }) => `${row.original.id.slice(0, 4)}...`, // Format ID by slicing the string
+      cell: ({ row }) => row.original.id, // Format ID by slicing the string
     },
     {
       accessorKey: "senderName",

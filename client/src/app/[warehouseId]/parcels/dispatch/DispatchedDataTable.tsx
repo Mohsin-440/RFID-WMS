@@ -82,14 +82,14 @@ export function DispatchDataTable<TData extends Record<string, any>>({ dispatche
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
-                const rowData = row.original; // Get the actual data for the row
-                const isDispatched = dispatchedIds.includes(rowData.epcId); // Check if the row is dispatched
+                const rowData = row.original; 
+                const isDispatched = dispatchedIds.includes(rowData.epcId); 
 
                 return (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className={isDispatched ? "bg-red-200" : ""} // Apply red background if dispatched
+                    className={`hover:bg-red-400 ${isDispatched ? "bg-red-200" : ""}`} 
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>

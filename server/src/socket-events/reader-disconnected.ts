@@ -48,6 +48,7 @@ export const readerDisconnected = async (baseIo: SocketServer, socket: Socket, p
         await redisClient.set(reader.readerServerId, JSON.stringify({ reader, readerSeverSocketId: socket.id }))
 
     } catch (error) {
+        console.log("reader disconnected response", props)
 
         reader = await db.reader.findUnique({
             where: {
