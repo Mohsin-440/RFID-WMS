@@ -32,6 +32,7 @@ export const readerConnected = async (baseIo: SocketServer, socket: Socket, prop
     let reader: Omit<Reader, "connectionStatus"> | null = null;
 
     let readerSeverSocketId: string | null = null;
+    
     if (!props.readerDetails) {
         console.log(props)
     }

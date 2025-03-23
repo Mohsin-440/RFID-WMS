@@ -3,7 +3,7 @@ import { create } from "zustand";
 
 type T_Socket = {
     socket?: Socket;
-    setSocket: (socket: Socket) => void;
+    setSocket: (socket?: Socket) => void;
     socketStatuses: {
         connected: boolean,
         connecting: boolean,

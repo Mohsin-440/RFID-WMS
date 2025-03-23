@@ -17,43 +17,44 @@ function SocketWrapperComp({ children }: { children: React.ReactNode }) {
     const params = useParams<{ warehouseId: string }>()
     const isMounted = useIsMounted()
     const { userInfo, setUserInfo } = useUserStore();
-    console.log(userInfo)
+
     useEffect(() => {
-        if (!socket && isMounted && userInfo) {
-            const socketIo = io(process.env.NEXT_PUBLIC_SERVER_BASE_URL, {
-                reconnection: true,
-                reconnectionAttempts: 20,
-                reconnectionDelay: 1000,
-                reconnectionDelayMax: 3000,
-                auth: params,
-                withCredentials: true
-            })
-            socketIo.on("connect", () => {
-                setSocketStatuses({
-                    connected: true,
-                    disconnected: false,
-                    connecting: false,
-                    id: socketIo?.id
-                })
-                setSocket(socketIo)
-            })
-            return () => {
-                socketIo.removeListener("connect", () => {
-                    setSocketStatuses({
-                        connected: true,
-                        disconnected: false,
-                        connecting: false,
-                        id: socketIo?.id
-                    })
-                    setSocket(socketIo)
-                })
-            }
-        }
+        if (!isMounted || !userInfo) return;
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [socket, isMounted, userInfo, params])
+        // Create socket instance
+        const socketIo = io(process.env.NEXT_PUBLIC_SERVER_BASE_URL!, {
+            reconnection: true,
+            reconnectionAttempts: 20,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 3000,
+            auth: params,
+            withCredentials: true
+        });
 
+        // Connect handler
+        const handleConnect = () => {
+            setSocketStatuses({
+                connected: true,
+                disconnected: false,
+                connecting: false,
+                id: socketIo.id
+            });
+            setSocket(socketIo);
 
+            console.log("connected via handle")
+        };
+
+        socketIo.on("connect", handleConnect);
+
+        return () => {
+            socketIo.off("connect", handleConnect);
+            socketIo.disconnect();
+            setSocket(undefined);
+        };
+
+    }, [isMounted, userInfo, params, setSocket, setSocketStatuses]);
+
+   
     const onConnect = useCallback(() => {
         setSocketStatuses({
             connected: true,
@@ -61,8 +62,8 @@ function SocketWrapperComp({ children }: { children: React.ReactNode }) {
             connecting: false,
             id: socket?.id
         })
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [socket?.id])
+        console.log("connected via callback")
+    }, [setSocketStatuses, socket?.id])
 
     const onDisconnect = useCallback(() => {
 
@@ -72,6 +73,7 @@ function SocketWrapperComp({ children }: { children: React.ReactNode }) {
             connecting: false,
             id: socket?.id
         })
+        console.log("disconnected")
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [socket?.id])
 

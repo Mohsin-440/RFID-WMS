@@ -70,7 +70,7 @@ export const startMonitoring = async (props: { userId: string, socketId: string 
                     socketId: props.socketId,
                     readerDetails: parsedReaderDetails
                 }
-
+                // console.log(resBody)
                 clientSocket.emit("reader-to-server:tags-monitored", resBody)
             }
         })

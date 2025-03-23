@@ -24,8 +24,11 @@ export const connectReader = async (baseIo: SocketServer, socket: Socket, props:
         if (reader) {
             const readerServerStringified = await redisClient.get(`reader:${reader.readerServerId}`)
             if (readerServerStringified) {
+                
                 const readerServerParsed = JSON.parse(readerServerStringified) as { reader: Reader; readerSeverSocketId: string }
+                
                 console.log("sent", readerServerParsed.readerSeverSocketId)
+
                 baseIo.to(readerServerParsed.readerSeverSocketId).emit("server-to-reader:connect-reader", {
                     userId: socket.user.id
                 })
