@@ -6,9 +6,11 @@ import { establishConnection } from "../utilts/establishConnection";
 let connecting = false;
 export async function connectReaderEvent(props: { userId: string }) {
 
+    console.log("reader connection requested")
+    
     if (connecting === true)
         return
-    console.log("reader connection requested")
+
     try {
         connecting = true;
         const readerDetails = await redisClient.get("reader-details")

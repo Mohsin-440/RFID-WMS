@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Warehouse } from "@wsm/shared/types/getWarehousesRes";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
     AlertDialog,
     AlertDialogTrigger,
@@ -14,11 +14,17 @@ import {
     AlertDialogCancel,
     AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { useSocketStore } from "@/store/socket.store";
 
 function WarehouseSwitcher({ warehouses = [] }: { warehouses?: Warehouse[] }) {
     const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
     const [showConfirm, setShowConfirm] = useState(false);
+
+    const params = useParams<{ warehouseId: string }>();
+
     const router = useRouter();
+
+    const { socket } = useSocketStore()
 
     const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedId = event.target.value;
@@ -29,10 +35,22 @@ function WarehouseSwitcher({ warehouses = [] }: { warehouses?: Warehouse[] }) {
 
     const handleConfirmSwitch = () => {
         if (selectedWarehouse) {
+            socket?.emit("client-to-server:stop-reading-tags", selectedWarehouse.id);
             router.push(`/${selectedWarehouse.id}/warehouse`);
         }
         setShowConfirm(false);
     };
+
+
+    useEffect(() => {
+        const warehouse = warehouses.find((w) => w.id === params.warehouseId);
+
+        if (warehouse)
+            setSelectedWarehouse(warehouse);
+        else
+            setSelectedWarehouse(null);
+    }, [params, warehouses])
+
 
     return (
         <div className="space-y-4">
@@ -40,8 +58,9 @@ function WarehouseSwitcher({ warehouses = [] }: { warehouses?: Warehouse[] }) {
             <select
                 onChange={handleSelectChange}
                 className="ml-5 mt-2 w-56 text-sm border border-gray-300 rounded-md p-2 text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                defaultValue=""
+                value={selectedWarehouse?.id || ""}
             >
+             
                 <option value="" disabled>
                     Choose a warehouse
                 </option>

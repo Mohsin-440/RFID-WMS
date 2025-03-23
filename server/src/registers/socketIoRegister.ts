@@ -13,7 +13,7 @@ import { startMonitoring } from "../socket-events/start-monitoring"
 import { redisClient } from "../utils/redis"
 import { getCachedUser } from "../utils/getCachedUser"
 import { startReadingParcelTagsForDispatch } from "../socket-events/start-reading-parcel-tags-for-dispatch"
-import { parcelTagsReadForDispatch } from "../socket-events/parcelTagsReadForDispatch"
+import { parcelTagsReadForDispatch } from "../socket-events/parcel-tags-read-for-dispatch"
 
 
 export const socketIoRegister = (baseIo: SocketServer) => {
