@@ -1,8 +1,10 @@
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
 import db from "../../utils/db";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { getUserFromDb } from "../../utils/getUserFromDb";
+import { redisClient } from "../../utils/redis";
+import { getCachedUser } from "../../utils/getCachedUser";
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
@@ -44,7 +46,17 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         });
 
         delete (existingUser as any)?.password;
-        
+
+        const { user, sessionSocketIds, error } = await getCachedUser({ userId: existingUser.id });
+        if (error) {
+            console.log(`error occurred while getting cached user in login controller: ${error}`)
+        }
+        if (user && sessionSocketIds)
+            await redisClient.set(`wms-user:${existingUser.id}`, JSON.stringify({ user: existingUser, sessionSocketIds }));
+        else
+            await redisClient.set(`wms-user:${existingUser.id}`, JSON.stringify({ user: existingUser }));
+
+
         const resBody = {
             success: true,
             message: "Logged in successfully",

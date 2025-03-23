@@ -70,8 +70,12 @@ export const readerDisconnected = async (baseIo: SocketServer, socket: Socket, p
 
     }
 
-    if (props.readerDetails.connectionStatus === "not-connected") {
-        const { sessionSocketIds, user } = await getCachedUser({ userId: props.userId })
+    if (props.readerDetails.connectionStatus === "not-connected" && props.userId) {
+        const { sessionSocketIds, user, error } = await getCachedUser({ userId: props.userId })
+        if (error) {
+            console.log(`error occurred while getting cached user in reader disconnected event: ${error}`)
+            return
+        }
         if (sessionSocketIds) {
             for (const sessionSocketId of sessionSocketIds) {
                 await new Promise(async (resolve) => {

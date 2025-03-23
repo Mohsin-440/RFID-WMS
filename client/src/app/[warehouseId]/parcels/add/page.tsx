@@ -114,11 +114,10 @@ const AddParcel: FC = () => {
 
   useEffect(() => {
     if (tag.epcId) {
-      setValue("rfidTagId", tag.epcId); // This sets the value dynamically
+      setValue("rfidTagId", tag.epcId);
     }
   }, [tag, setValue]);
 
-  // useMutation hook for submitting the parcel data
   const { mutate: createParcel, isPending: loadingSubmit } = useMutation({
     mutationFn: (newParcel: FormData) => {
       return axios.post("http://localhost:4000/api/v1/parcel/add", newParcel,
@@ -146,19 +145,20 @@ const AddParcel: FC = () => {
         title: "Added Successfully",
         description: data.data.message,
       });
+      socket?.emit("client-to-server:stop-reading-tags")
       router.push(`/${param.warehouseId}/parcels`);
     },
   });
 
   // Handle form submission
-  const onSubmit: SubmitHandler<FormData> = (data) => {
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
     createParcel(data);
   };
 
   const onClickConnectReader = () => {
     setConnectingReader(true)
     setConnected(false)
-    socket?.emit("client-to-server:connect-reader")
+    socket?.emit("client-to-server:connect-reader", { readerRole: "Writer" })
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -174,7 +174,7 @@ const AddParcel: FC = () => {
 
   const onClickReadingTags = () => {
     setReadingTags(true)
-    socket?.emit("client-to-server:start-reading-tags")
+    socket?.emit("client-to-server:start-reading-tags", { readerRole: "Writer" })
   }
   const onClickStopReadingTags = () => {
     socket?.emit("client-to-server:stop-reading-tags")
@@ -182,6 +182,7 @@ const AddParcel: FC = () => {
   const onTagsReadingStopped = () => {
     setReadingTags(false)
   }
+
   const onTagsRead = useCallback((data: Tag[]) => {
 
     if (!data.length)
@@ -202,8 +203,17 @@ const AddParcel: FC = () => {
     } else if (highestRssiValueTag.epcId === tag.epcId) {
       setTag({ ...tag, readCount: tag.readCount++ })
     }
+    if (!connected) {
+      setConnected(true)
+    }
+    if (connectingReader) {
+      setConnectingReader(false)
+    }
+    if (!readingTags) {
+      setReadingTags(true)
+    }
 
-  }, [tag])
+  }, [connected, connectingReader, readingTags, tag])
 
   useEffect(() => {
     if (socket) {
@@ -214,9 +224,9 @@ const AddParcel: FC = () => {
 
       return () => {
         socket.removeListener("server-to-client:reader-connected", onReaderConnected)
-        socket.on("server-to-client:reader-disconnected", onReaderDisconnected)
+        socket.removeListener("server-to-client:reader-disconnected", onReaderDisconnected)
         socket.removeListener("server-to-client:tags-read", onTagsRead)
-        socket.on("server-to-client:tags-reading-stopped", onTagsReadingStopped)
+        socket.removeListener("server-to-client:tags-reading-stopped", onTagsReadingStopped)
       }
     }
   }, [onTagsRead, socket])

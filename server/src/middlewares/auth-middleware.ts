@@ -10,7 +10,6 @@ export const isAuthenticated = async (
   next: NextFunction
 ) => {
   try {
-    console.log("isAuthenticated middleware");
     // Get the token from cookies
     const token = req.cookies.authToken;
     if (!token) {
@@ -34,13 +33,21 @@ export const isAuthenticated = async (
     // Verify the token
     const decoded = jwt.verify(token, jwtSecret);
 
-    const { user } = await getCachedUser({ userId: (decoded as any).userId });
+    const { user, error } = await getCachedUser({ userId: (decoded as any).userId });
+
+    if (error) {
+      console.log(`error occurred while getting cached user in auth middleware: ${error}`)
+      res.status(401).json({ message: error })
+      return
+    }
 
     if (!user) {
       res.status(401).json({ message: "user not found" })
       return
     }
-
+    user?.warehouseUsers.forEach(warehouseUser => {
+      // console.log(warehouseUser.warehouse.readers)
+    })
     const tokens = jwt.sign(
       { userId: user?.id, email: user?.email },
       process.env.JWT_SECRET as string,

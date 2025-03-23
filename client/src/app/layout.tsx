@@ -3,6 +3,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import { Toaster } from "@/components/ui/toaster";
 import { Poppins } from "next/font/google";
+import { AutoplayProvider } from "@/components/AutoplayProvider";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -24,10 +25,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={poppins.variable}>
       <Providers>
-        <body className="font-sans">
-          {children}
-          <Toaster />
-        </body>
+        <AutoplayProvider>
+          <body className="font-sans">
+            {children}
+            <Toaster />
+          </body>
+        </AutoplayProvider>
       </Providers>
     </html>
   );

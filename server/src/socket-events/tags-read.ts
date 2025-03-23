@@ -40,8 +40,11 @@ type Props = {
 export const tagsRead = async (baseIo: SocketServer, socket: Socket, props: Props) => {
     try {
 
-        const { user, sessionSocketIds } = await getCachedUser({ userId: props.userId })
-
+        const { user, sessionSocketIds, error } = await getCachedUser({ userId: props.userId })
+        if (error) {
+            console.log(`error occurred while getting cached user in tags read event: ${error}`)
+            return
+        }
         if (!sessionSocketIds)
             return;
 

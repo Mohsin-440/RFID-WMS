@@ -12,9 +12,12 @@ type Props = {
 
 export const tagsReadingStopped = async (baseIo: SocketServer, socket: Socket, props: Props) => {
 
-  
-    const { user, sessionSocketIds } = await getCachedUser({ userId: props.userId })
 
+    const { user, sessionSocketIds, error } = await getCachedUser({ userId: props.userId })
+    if (error) {
+        console.log(`error occurred while getting cached user in tags reading stopped event: ${error}`)
+        return
+    }
     if (!sessionSocketIds)
         return;
     for (const sessionSocketId of sessionSocketIds) {

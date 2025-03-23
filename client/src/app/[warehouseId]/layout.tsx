@@ -1,3 +1,4 @@
+import AutoplayPermissionPrompt from "@/components/AutoplayPermissionPrompt";
 import Menu from "@/components/Menu";
 import Navbar from "@/components/Navbar";
 import SocketWrapper from "@/components/SocketWrapper";
@@ -6,7 +7,9 @@ import Link from "next/link";
 
 export default function DashboardLayout({ children, }: Readonly<{ children: React.ReactNode }>) {
   return (
+
     <SocketWrapper>
+      <AutoplayPermissionPrompt />
       <div className="flex h-screen overflow-hidden">
 
         <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] h-full p-3 flex flex-col">

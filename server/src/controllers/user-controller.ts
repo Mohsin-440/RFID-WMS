@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import multer from "multer";
 import path from "path";
 import db from "../utils/db.js";
-import { RegisterValidator } from "shared/validators/registerValidator";
+import { RegisterValidator } from "shared/validators/registerValidator.js";
 
 
 // Set the absolute path for the uploads directory

@@ -25,6 +25,6 @@
     },
     "typeRoots": ["./node_modules/@types", "./src/types"] // Specify multiple type root locations
   },
-  "include": ["src", "../shared/types/*"],
+  "include": ["src", "../shared/types/*", "../shared/src/types/parcelDetailsWithStatus.d.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"] // Exclude test files and node_modules
 }

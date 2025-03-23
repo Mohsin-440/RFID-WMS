@@ -2,12 +2,15 @@
 
 import { useUserStore } from "@/store/user.store";
 import Image from "next/image";
+import { useParams } from "next/navigation";
 import { MdOutlineEmail } from "react-icons/md";
 import { RxAvatar } from "react-icons/rx";
 
 
 const Navbar = () => {
   const { userInfo } = useUserStore();
+  const params = useParams<{ warehouseId: string }>()
+  const warehouseUser = userInfo?.warehouseUsers.find((w) => w.warehouse.id === params.warehouseId);
 
   return (
     <div className="flex items-center justify-between p-4 bg-white ">
@@ -28,6 +31,10 @@ const Navbar = () => {
               {userInfo?.firstName} {userInfo?.lastName}
             </span>
             <span className="text-xs text-gray-500">{userInfo?.role}</span>
+            <div className="space-x-1">
+              <span className="text-xs text-gray-500 font-semibold">Branch name:</span>
+              <span className="text-xs text-gray-500">{warehouseUser?.warehouse?.warehouseName}</span>
+            </div>
           </div>
 
           <div className="relative w-9 h-9">

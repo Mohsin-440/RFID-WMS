@@ -48,7 +48,7 @@ const ParcelDispatch = () => {
     const onClickConnectReader = () => {
         setConnectingReader(true);
         setConnected(false);
-        socket?.emit("client-to-server:connect-reader");
+        socket?.emit("client-to-server:connect-reader", { readerRole: "Writer" });
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,7 +64,7 @@ const ParcelDispatch = () => {
 
     const onClickReadingTags = () => {
         setReadingTags(true);
-        socket?.emit("client-to-server:start-reading-tags");
+        socket?.emit("client-to-server:start-reading-tags", { readerRole: "Writer" });
     };
 
     const onClickStopReadingTags = () => {

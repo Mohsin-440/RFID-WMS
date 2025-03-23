@@ -1,11 +1,42 @@
 import { Request, Response } from "express";
-import db from "../utils/db.js";
+import db from "../utils/db";
 import { GetAllParcels } from "shared/types/getAllParcels"
+import { ParcelDetailsWithStatus } from "../../../shared/src/types/parcelDetailsWithStatus";
+import { redisClient } from "../utils/redis";
+import { z } from "zod";
 
+const parcelSchema = z.object({
+  parcelName: z.string().min(1, "Parcel Name is required"),
+  parcelPrice: z.string().min(1, "Parcel Price is required"),
+  parcelDate: z.string().min(1, "Parcel Date is required"),
+  parcelTrackingNumber: z.string().min(1, "Parcel Tracking Number is required"),
+  parcelWeight: z.string().min(1, "Parcel Weight is required"),
+  senderFirstName: z.string().min(1, "Sender First Name is required"),
+  senderLastName: z.string().min(1, "Sender Last Name is required"),
+  senderEmail: z
+    .string()
+    .email("Invalid email address")
+    .min(1, "Sender Email is required"),
+  senderPhoneNumber: z.string().min(1, "Sender Phone Number is required"),
+  senderAddress: z.string().min(1, "Sender Address is required"),
+  receiverFirstName: z.string().min(1, "Receiver First Name is required"),
+  receiverLastName: z.string().min(1, "Receiver Last Name is required"),
+  receiverEmail: z
+    .string()
+    .email("Invalid email address")
+    .min(1, "Receiver Email is required"),
+  receiverPhoneNumber: z.string().min(1, "Receiver Phone Number is required"),
+  receiverAddress: z.string().min(1, "Receiver Address is required"),
+});
+
+type FormData = z.infer<typeof parcelSchema>;
 export const createParcel = async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!req.user) {
+      res.status(401).json({ message: "Unautorized access", success: false })
+      return
+    }
     const parcelDetails = req.body;
-
     // Set the parcelDate to the current timestamp
     parcelDetails.parcelDate = new Date().toISOString();
 
@@ -24,7 +55,7 @@ export const createParcel = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    parcelDetails.warehouseId = warehouse.id; 
+    parcelDetails.warehouseId = warehouse.id;
 
     const rfidTagIdExist = await db.parcelDetails.findFirst({
       where: {
@@ -56,23 +87,62 @@ export const createParcel = async (req: Request, res: Response): Promise<void> =
 
     // Create parcel in the database
     const createdParcel = await db.parcelDetails.create({
-      data: {...parcelDetails},
+      data: { ...parcelDetails },
     });
 
 
     // Create an initial status in the ParcelStatus table
-    await db.parcelStatus.create({
+    const parcelStatusCreated = await db.parcelStatus.create({
       data: {
         parcelId: createdParcel.id,
-        userId: req.user?.id || '6c887d83-44ad-408d-9cb2-7111470e6f4e', // Ensure userId is provided in the request
+        userId: req.user.id, // Ensure userId is provided in the request
         status: "Pending",
       },
     });
+    const createdParcelDetails = await db.parcelDetails.findUnique({
+      where: {
+        id: createdParcel.id
+      },
+      select: {
+        id: true,
+        parcelTrackingNumber: true,
+        parcelWeight: true,
+        parcelDate: true,
+        rfidTagId: true,
+        warehouseId: true,
+        createdAt: true,
+        parcelName: true,
+        parcelPrice: true,
+        receiverAddress: true,
+        receiverEmail: true,
+        receiverFirstName: true,
+        receiverLastName: true,
+        receiverPhoneNumber: true,
+        senderAddress: true,
+        senderEmail: true,
+        senderFirstName: true,
+        senderLastName: true,
+        senderPhoneNumber: true,
+
+        parcelStatuses: {
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+          },
+          orderBy: [{ createdAt: "desc" }],
+
+        }
+      }
+    }) as ParcelDetailsWithStatus
+
+    await redisClient.set(`wsm-parcelFromTagId:${createdParcelDetails.rfidTagId}`, JSON.stringify(createdParcelDetails))
 
     res.status(201).json({
       success: true,
       message: "Parcel created successfully",
     });
+
   } catch (error) {
     console.error("Error creating parcel:", error);
     res.status(500).json({
@@ -144,7 +214,7 @@ export const singleParcel = async (req: Request, res: Response) => {
       where: { parcelId: id },
       orderBy: { createdAt: "desc" },
     })
-    
+
     if (!parcel) {
       res.status(404).json({
         success: false,
@@ -154,7 +224,7 @@ export const singleParcel = async (req: Request, res: Response) => {
       res.status(200).json({
         success: true,
         parcel,
-        parcelStatus : parcelStatus[0].status
+        parcelStatus: parcelStatus[0].status
       });
     }
   } catch (error) {
@@ -170,13 +240,12 @@ export const singleParcel = async (req: Request, res: Response) => {
 export const updateParcel = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const parcelDetails = req.body;
-    console.log({parcelDetails})
+    const parcelDetails = req.body as FormData;
 
-    // Check if the parcel exists
     const existingParcel = await db.parcelDetails.findUnique({
       where: { id },
     });
+
     if (!existingParcel) {
       res.status(404).json({
         success: false,
@@ -185,24 +254,28 @@ export const updateParcel = async (req: Request, res: Response) => {
       return;
     }
 
-    // Ensure parcelDate is in ISO format
+    const formattedDate = new Date(parcelDetails.parcelDate);
     if (parcelDetails.parcelDate) {
-      const formattedDate = new Date(parcelDetails.parcelDate);
-      if (!isNaN(formattedDate.getTime())) {
+      if (!isNaN(formattedDate.getTime()))
         parcelDetails.parcelDate = formattedDate.toISOString();
-      } else {
+
+      else {
+
         res.status(400).json({
           success: false,
           message:
             "Invalid date format for parcelDate. Please use a valid date.",
         });
+
         return;
       }
     }
 
-    // Convert parcelWeight to float
+    const weight = parseFloat(parcelDetails.parcelWeight);
+
     if (parcelDetails.parcelWeight) {
-      const weight = parseFloat(parcelDetails.parcelWeight);
+
+
       if (isNaN(weight) || weight <= 0) {
         res.status(400).json({
           success: false,
@@ -211,18 +284,31 @@ export const updateParcel = async (req: Request, res: Response) => {
         });
         return;
       }
-      parcelDetails.parcelWeight = weight; // Store weight as a float
+
+
     }
 
-    // If no status is provided, keep the existing status
-    if (!parcelDetails.status) {
-      parcelDetails.status = existingParcel;
-    }
 
-    // Update the parcel in the database
+
     await db.parcelDetails.update({
       where: { id },
-      data: parcelDetails,
+      data: {
+        parcelDate: formattedDate,
+        parcelName: parcelDetails.parcelName,
+        parcelPrice: parcelDetails.parcelPrice,
+        parcelTrackingNumber: parcelDetails.parcelTrackingNumber,
+        parcelWeight: weight,
+        receiverAddress: parcelDetails.receiverAddress,
+        receiverEmail: parcelDetails.receiverEmail,
+        receiverFirstName: parcelDetails.receiverFirstName,
+        receiverLastName: parcelDetails.receiverLastName,
+        receiverPhoneNumber: parcelDetails.receiverPhoneNumber,
+        senderAddress: parcelDetails.senderAddress,
+        senderEmail: parcelDetails.senderEmail,
+        senderFirstName: parcelDetails.senderFirstName,
+        senderLastName: parcelDetails.senderLastName,
+        senderPhoneNumber: parcelDetails.senderPhoneNumber,
+      },
     });
 
     res.status(200).json({
@@ -245,7 +331,7 @@ export const updateParcelStatus = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    console.log("first",id)
+    console.log("first", id)
     // Find the parcel by ID
     const existingParcel = await db.parcelDetails.findUnique({
       where: { id },
@@ -306,7 +392,7 @@ export const updateParcelStatus = async (
 export const updateDispatchParcelsStatus = async (req: Request, res: Response): Promise<void> => {
   try {
     const { tagIds } = req.body; // Receive an array of tagIds from the frontend
-    console.log("first",tagIds)
+    console.log("first", tagIds)
 
     if (!Array.isArray(tagIds) || tagIds.length === 0) {
       res.status(400).json({
@@ -368,7 +454,7 @@ export const updateDispatchParcelsStatus = async (req: Request, res: Response): 
     res.status(200).json({
       success: true,
       message: `${parcelsToUpdate.length} parcel(s) updated to Dispatched`,
-      updatedParcels, 
+      updatedParcels,
     });
 
   } catch (error) {

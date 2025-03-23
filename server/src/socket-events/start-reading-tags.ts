@@ -5,12 +5,7 @@ import { redisClient } from "../utils/redis";
 import { Reader } from "../types/reader";
 
 
-type Props = {
-    readerServerId: string;
-    address: string;
-    role: string;
-    connectionStatus?: "connected" | "not-connected";
-}
+type Props = { readerRole: "Reader" | "Writer" }
 
 
 export const startReadingTags = async (baseIo: SocketServer, socket: Socket, props: Props) => {
@@ -29,7 +24,7 @@ export const startReadingTags = async (baseIo: SocketServer, socket: Socket, pro
             }
         })
 
-        const reader = readers.find((reader) => reader.role === "Writer")
+        const reader = readers.find((reader) => reader.role === props.readerRole)
 
         if (reader) {
 

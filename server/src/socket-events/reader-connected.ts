@@ -27,6 +27,7 @@ type Reader = {
 
 
 export const readerConnected = async (baseIo: SocketServer, socket: Socket, props: Props) => {
+    console.log("here connected")
 
     let reader: Omit<Reader, "connectionStatus"> | null = null;
 
@@ -37,7 +38,6 @@ export const readerConnected = async (baseIo: SocketServer, socket: Socket, prop
     try {
 
         const readerServerStringified = await redisClient.get(props.readerDetails.readerServerId)
-
         if (!readerServerStringified)
             throw new Error()
 
@@ -73,7 +73,11 @@ export const readerConnected = async (baseIo: SocketServer, socket: Socket, prop
     }
 
     if (props.readerDetails.connectionStatus === "connected") {
-        const { sessionSocketIds, user } = await getCachedUser({ userId: props.userId })
+        const { sessionSocketIds, error } = await getCachedUser({ userId: props.userId })
+        if (error) {
+            console.log(`error occurred while getting cached user in reader connected event: ${error}`)
+            return
+        }
         if (sessionSocketIds) {
             for (const sessionSocketId of sessionSocketIds) {
                 await new Promise(async (resolve) => {

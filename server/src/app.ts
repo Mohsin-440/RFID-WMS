@@ -8,6 +8,9 @@ import { Server as SocketServer } from "socket.io"
 import http from "http"
 import registerRoutes from "./registers/routerRegister";
 import { socketIoRegister } from "./registers/socketIoRegister";
+import { redisClient } from "./utils/redis";
+import { clearRedisCollection } from "./utils/clearRedisCollection";
+import { getCachedUser } from "./utils/getCachedUser";
 
 config({ path: ".env" });
 
@@ -46,3 +49,16 @@ socketIoRegister(socketIo)
 httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+(async () => {
+  await clearRedisCollection("wsm-socketId*")
+  const keys = await redisClient.keys("wms-user*");
+  for (const key of keys) {
+
+    const { user, sessionSocketIds } = await getCachedUser({ userId: key.split(":")[1] })
+    await redisClient.set(key, JSON.stringify({
+      user,
+      sessionSocketIds: [],
+    }))
+  }
+})()

@@ -58,7 +58,7 @@ export const establishConnection = async (client: Socket) => {
 
         client.destroy();
         await wait(10)
-        connectReader(client)
+        await connectReader(client)
 
 
 
@@ -67,7 +67,7 @@ export const establishConnection = async (client: Socket) => {
         if (err !== "close")
             return
 
-        connectReader(client)
+        await connectReader(client)
 
         await socketWriteWithResponse(Buffer.from([0x49, 0x4f, 0x47, 0x45, 0x54]), { wait: true })
         await socketWriteWithResponse(Buffer.from([0x49, 0x4f, 0x47, 0x45, 0x54]), { wait: true })
@@ -88,7 +88,7 @@ export const establishConnection = async (client: Socket) => {
         await socketWriteWithResponse(Buffer.from([0xff, 0x01, 0x61, 0x05, 0xbd, 0xb8]), { wait: true })
 
         const readerDetails = await socketWriteWithResponse(Buffer.from([0xFF, 0x02, 0x10, 0x00, 0x00,]), { wait: true, appendCrcToInput: true })
-        
+
         const readerYearModel = Number(Array.from(readerDetails.subarray(5, 9)).join(""));
 
         const serialNumber = Array.from(readerDetails.subarray(9, 17)).join("")

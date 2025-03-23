@@ -1,4 +1,3 @@
-import db from "./db";
 import { getUserFromDb } from "./getUserFromDb";
 import { redisClient } from "./redis";
 
@@ -16,17 +15,17 @@ export const getCachedUser = async ({ userId, socketId, userBody }: GetCachedUse
 
         let sessionSocketIds: string[] | undefined = undefined;
 
-        const redisUserStringed = await redisClient.get(userId);
+        const redisUserStringed = await redisClient.get(`wms-user:${userId}`);
 
         if (redisUserStringed) {
 
             const userParsed = JSON.parse(redisUserStringed)
-            
+
             sessionSocketIds = userParsed.sessionSocketIds as string[];
-            
+
             if (userBody) {
                 user = userBody
-                redisClient.set(userId, JSON.stringify({
+                await redisClient.set(`wms-user:${userId}`, JSON.stringify({
                     user,
                     sessionSocketIds,
                 }))
@@ -34,13 +33,14 @@ export const getCachedUser = async ({ userId, socketId, userBody }: GetCachedUse
             else
                 user = userParsed.user
 
-
             if (socketId) {
-
+                if (!sessionSocketIds)
+                    sessionSocketIds = []
                 const id = sessionSocketIds.indexOf(socketId)
+                // console.log(sessionSocketIds, id, socketId)
                 if (id <= -1) {
                     sessionSocketIds.push(socketId)
-                    redisClient.set(userId, JSON.stringify({
+                    await redisClient.set(`wms-user:${userId}`, JSON.stringify({
                         user,
                         sessionSocketIds,
                     }))
@@ -54,7 +54,7 @@ export const getCachedUser = async ({ userId, socketId, userBody }: GetCachedUse
 
 
             if (user) {
-                await redisClient.set(user?.id, JSON.stringify({
+                await redisClient.set(`wms-user:${user.id}`, JSON.stringify({
                     user,
                     sessionSocketIds: socketId ? [socketId] : [],
                 }))
@@ -68,6 +68,7 @@ export const getCachedUser = async ({ userId, socketId, userBody }: GetCachedUse
 
         return { user, sessionSocketIds }
     } catch (error) {
+        console.log(`error occurred while getting user from cache: ${(error as any).message}`, error)
         return { error: `${(error as any).message}` }
     }
 }

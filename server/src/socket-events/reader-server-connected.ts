@@ -3,6 +3,8 @@ import { Server as SocketServer } from "socket.io"
 import { redisClient } from "../utils/redis";
 import db from "../utils/db";
 import { Reader } from "../types/reader";
+import { getCachedUser } from "../utils/getCachedUser";
+import { getUserFromDb } from "../utils/getUserFromDb";
 
 
 type Props = {
@@ -74,6 +76,41 @@ export const readerServerConnected = async (baseIo: SocketServer, socket: Socket
                     },
                     readerSeverSocketId: socket.id
                 }))
+                const warehouseUsers = await db.user.findMany({
+                    where: {
+                        warehouseUsers: {
+                            some: {
+                                warehouseId: warehouse.id
+                            }
+                        }
+                    }
+                })
+                for (const warehouseUser of warehouseUsers) {
+                    const { sessionSocketIds, error } = await getCachedUser({ userId: warehouseUser.id });
+                    if (error) {
+                        console.log(`error occurred while getting cached user in reader server connected event: ${error}`)
+                        continue;
+                    }
+                    if (!sessionSocketIds)
+                        continue;
+
+                    const latestUserDetails = await getUserFromDb({ userId: warehouseUser.id })
+                    if (!latestUserDetails) {
+                        console.log("latestUserDetails not found in reader server connected event.")
+                        continue;
+                    }
+                    await redisClient.set(`wms-user:${latestUserDetails?.id}`, JSON.stringify({ user: latestUserDetails, sessionSocketIds }));
+
+                    delete (latestUserDetails as any)?.password;
+
+                    for (const sessionSocketId of sessionSocketIds) {
+                        console.log("server-to-client:updated-user-details called")
+                        await new Promise((resolve) => {
+                            baseIo.to(sessionSocketId).emit("server-to-client:updated-user-details", { user: latestUserDetails })
+                            resolve(true)
+                        })
+                    }
+                }
             }
 
 
