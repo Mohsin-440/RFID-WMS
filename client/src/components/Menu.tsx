@@ -82,6 +82,12 @@ const menuData: MenuDatum[] = [
         visible: ["Admin", "Manager"],
       },
       {
+        name: "Warehouses list",
+        icon: <LuWarehouse />,
+        link: (warehouseId) => `/${warehouseId}/warehouses`,
+        visible: ["Admin", "Manager"],
+      },
+      {
         name: "Logout",
         icon: <RiLogoutCircleLine />,
         link: "/logout",
