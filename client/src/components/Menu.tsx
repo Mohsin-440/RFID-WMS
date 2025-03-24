@@ -78,7 +78,7 @@ const menuData: MenuDatum[] = [
       {
         name: "Switch Warehouse",
         icon: <LuWarehouse />,
-        link: (warehouseId) => `/${warehouseId}/warehouse`,
+        link: (warehouseId) => `/${warehouseId}/switch-warehouse`,
         visible: ["Admin", "Manager"],
       },
       {

@@ -15,13 +15,23 @@ export const addWarehouse = async (req: Request, res: Response) => {
       return;
     }
 
-    const findWarehouse = await db.warehouse.findUnique({
+    const findWarehouseName = await db.warehouse.findUnique({
       where: {
         warehouseName
       }
     });
-    if (findWarehouse) {
+    if (findWarehouseName) {
       res.status(403).json({ warehouseName: "Warehouse name already exists" });
+      return
+    }
+    
+    const findWarehouseAddress = await db.warehouse.findUnique({
+      where: {
+        warehouseAddress
+      }
+    });
+    if (findWarehouseAddress) {
+      res.status(403).json({ warehouseAddress: "Warehouse address already exists" });
       return
     }
     // Create warehouse

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import db from "../../utils/db.js"; // Create a new Warehouse
-export const getAllWarehouse = async (req: Request, res: Response) => {
+export const getAllWarehouses = async (req: Request, res: Response) => {
 
   try {
     const warehouses = await db.warehouse.findMany({ orderBy: [{ warehouseName: "asc" }] });

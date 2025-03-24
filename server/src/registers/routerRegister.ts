@@ -10,7 +10,7 @@ export default function registerRoutes(app: Express) {
     // Use the imported routes to handle requests
     app.use("/api/v1/parcel", parcelRoute);
     app.use("/api/v1/user", userRoute);
-    app.use("/api/v1/warehouse", warehouseRoute);
+    app.use("/api/v1/warehouses", warehouseRoute);
 
 
 
