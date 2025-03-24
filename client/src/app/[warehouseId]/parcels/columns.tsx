@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, CheckCircle, Edit, Eye, Truck } from "lucide-react"; 
+import { ArrowUpDown, CheckCircle, Edit, Eye, Truck } from "lucide-react";
 import Link from "next/link";
-import ParcelActions from "./ParcelActions"; 
+import ParcelActions from "./ParcelActions";
 import { Parcel } from "@wsm/shared/types/getAllParcels"
 import { useParams } from "next/navigation";
 
@@ -24,7 +24,7 @@ export const ParcelColumns = (): ColumnDef<Parcel>[] => {
     },
     {
       accessorKey: "receiverName",
-      header: "Receiver Name",
+      header: () => <span className="whitespace-nowrap">Receiver Name</span>,
       cell: ({ row }) => {
         const receiverName = row.original.receiverFirstName + " " + row.original.receiverLastName;
         return <span>{receiverName}</span>; // Format date to en-GB format

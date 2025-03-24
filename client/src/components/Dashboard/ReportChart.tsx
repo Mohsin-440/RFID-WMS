@@ -13,12 +13,15 @@ import {
 } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import { getAllParcelsData } from "@/api/parcel-api";
+import { useParams } from "next/navigation";
 
 const ReportChart = () => {
   // Fetch data using React Query
+  const params = useParams<{ warehouseId: string }>();
+
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["parcelStats"],
-    queryFn: getAllParcelsData,
+    queryFn: () => getAllParcelsData(params),
   });
 
   // Handle loading and error states

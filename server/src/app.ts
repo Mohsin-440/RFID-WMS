@@ -51,7 +51,10 @@ httpServer.listen(PORT, () => {
 });
 
 (async () => {
+  
   await clearRedisCollection("wsm-socketId*")
+  await clearRedisCollection("wsm-parcelFromTagId*")
+  await clearRedisCollection("reader*")
   const keys = await redisClient.keys("wms-user*");
   for (const key of keys) {
 

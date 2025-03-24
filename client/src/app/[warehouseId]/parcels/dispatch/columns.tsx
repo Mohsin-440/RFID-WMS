@@ -47,14 +47,17 @@ export const DispatchedParcelsColumns = (handleRemoveTag: { (epcId: string): voi
             accessorKey: "parcelStatus",
             header: "Parcel Status",
             cell: ({ row }) => {
-                return <span>{row.original.parcel.parcelStatuses[0].status}</span>;
+                return <span
+                    className={`p-2 rounded-full ${row.original.parcel.parcelStatuses[0].status === "Dispatched" ? "bg-green-300" : "bg-red-300"}`}>
+                    {row.original.parcel.parcelStatuses[0].status}
+                </span>;
             },
         },
-        {
-            accessorKey: "totalReads",
-            header: "Total Reads",
-            cell: ({ row }) => row.original.readCount,
-        },
+        // {
+        //     accessorKey: "totalReads",
+        //     header: "Total Reads",
+        //     cell: ({ row }) => row.original.readCount,
+        // },
         {
             id: "actions",
             header: "Actions",

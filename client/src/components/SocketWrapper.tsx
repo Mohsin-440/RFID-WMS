@@ -54,7 +54,7 @@ function SocketWrapperComp({ children }: { children: React.ReactNode }) {
 
     }, [isMounted, userInfo, params, setSocket, setSocketStatuses]);
 
-   
+
     const onConnect = useCallback(() => {
         setSocketStatuses({
             connected: true,
@@ -139,6 +139,8 @@ function SocketWrapperComp({ children }: { children: React.ReactNode }) {
 
 function SocketWrapper({ children }: { children: React.ReactNode }) {
     const { autoplayOn } = useAutoplay()
+   
+
     return (
 
         <SocketWrapperComp>

@@ -43,7 +43,7 @@ const menuData: MenuDatum[] = [
         name: "Dashboard",
         icon: <MdOutlineDashboard />,
         link: (warehouseId) => `/${warehouseId}/dashboard`,
-        visible: ["Worker", "Admin", "Manager"],
+        visible: ["Worker", "Admin", "Manager", "CounterMan"],
       },
       {
         name: "Add Parcel",
@@ -55,13 +55,13 @@ const menuData: MenuDatum[] = [
         name: "All Parcels",
         icon: <LuPackage />,
         link: (warehouseId) => `/${warehouseId}/parcels`,
-        visible: ["CounterMan", "Admin", "Manager"],
+        visible: ["CounterMan", "Admin", "Manager", "Worker"],
       },
       {
         name: "Dispatch Parcels",
         icon: <LuPackage />,
         link: (warehouseId) => `/${warehouseId}/parcels/dispatch`,
-        visible: ["Admin", "Manager", "CounterMan"],
+        visible: ["Admin", "Manager", "Worker"],
       },
       {
         name: "Add User",
@@ -79,7 +79,7 @@ const menuData: MenuDatum[] = [
         name: "Switch Warehouse",
         icon: <LuWarehouse />,
         link: (warehouseId) => `/${warehouseId}/warehouse`,
-        visible: ["Admin", "Manager"],
+        visible: ["Admin"],
       },
       {
         name: "Logout",

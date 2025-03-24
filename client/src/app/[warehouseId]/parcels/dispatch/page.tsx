@@ -76,6 +76,7 @@ const ParcelDispatch = () => {
             const updatedTags = structuredClone(prevTags);
 
             data.forEach(tag => {
+               
                 if (tag.epcId.length === 24 && (-1 * tag.rssiValue) >= 200) {
                     const existingTagIndex = updatedTags.findIndex(t => t.epcId === tag.epcId);
                     if (existingTagIndex !== -1) {
@@ -135,7 +136,7 @@ const ParcelDispatch = () => {
                     title: "Error",
                     duration: 5000,
                     variant: "destructive",
-                    description: "No parcels exist with this tag id",
+                    description: error.response?.data.message,
                 });
             }
         }
@@ -170,7 +171,7 @@ const ParcelDispatch = () => {
 
     return (
         <Authenticate>
-            <Authorization roles={["Admin", "Manager"]} navigate={true}>
+            <Authorization roles={["Admin", "Manager", "Worker"]} navigate={true}>
                 <>
                     <div className='flex flex-row-reverse justify-between'>
                         <div className="p-5 w-fit">
@@ -187,14 +188,14 @@ const ParcelDispatch = () => {
                                     </Button>
                                 )
                             ) : (
-                                <h1 className="text-red-600">No writer configured at this warehouse</h1>
+                                <h1 className="bg-red-700 text-sm text-white p-3 rounded-full cursor-not-allowed">No writer configured at this warehouse</h1>
                             )}
                         </div>
                         {
                             tagsWithParcelDetails.length > 0 && (
                                 <div className="p-5 w-fit">
                                     <TooltipProvider>
-                                        <Tooltip>
+                                        <Tooltip delayDuration={0}>
                                             <TooltipTrigger asChild>
                                                 <div> {/* Wrapper div needed because disabled buttons can't trigger tooltips */}
                                                     <Button

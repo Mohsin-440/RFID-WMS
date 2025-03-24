@@ -89,7 +89,7 @@ export function DispatchDataTable<TData extends Record<string, any>>({ dispatche
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className={`hover:bg-red-400 ${isDispatched ? "bg-red-200" : ""}`} 
+                    className={`hover:bg-gray-200 ${isDispatched ? "bg-green-200" : ""}`} 
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>

@@ -7,7 +7,7 @@ let connecting = false;
 export async function connectReaderEvent(props: { userId: string }) {
 
     console.log("reader connection requested")
-    
+
     if (connecting === true)
         return
 
@@ -25,6 +25,7 @@ export async function connectReaderEvent(props: { userId: string }) {
         await connectReader(tcpClientSocket);
         const prop = await establishConnection(tcpClientSocket);
         connecting = false;
+        console.log({ prop }, JSON.stringify(prop))
         await redisClient.set("reader-details", JSON.stringify(prop))
 
         if (!prop)
