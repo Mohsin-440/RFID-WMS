@@ -15,8 +15,8 @@ const AutoplayPermissionPrompt = () => {
     const { userInfo } = useUserStore();
     const currentWarehouse = userInfo?.warehouseUsers.find((warehouseUser) => warehouseUser.warehouse.id === params.warehouseId)
     const readers = currentWarehouse?.warehouse.readers?.filter((reader) => reader.role === "Reader")
-    
-    if (readers?.length && readers?.length <= 0)
+
+    if (typeof readers?.length !== "undefined" && readers?.length <= 0)
         return null;
 
     return (
