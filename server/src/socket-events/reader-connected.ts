@@ -51,7 +51,7 @@ export const readerConnected = async (baseIo: SocketServer, socket: Socket, prop
         await redisClient.set(reader.readerServerId, JSON.stringify({ reader, readerSeverSocketId: socket.id }))
 
     } catch (error) {
-
+        console.log("reader connected response", props)
         reader = await db.reader.findUnique({
             where: {
                 readerServerId: props.readerDetails.readerServerId

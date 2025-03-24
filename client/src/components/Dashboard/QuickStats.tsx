@@ -2,12 +2,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { FiPackage } from "react-icons/fi";
 import { getAllParcelsData } from "@/api/parcel-api"; // Assuming you have an API endpoint for this
+import { useParams } from "next/navigation";
 
 const QuickStats = () => {
   // Fetch data using react-query
+  const params = useParams<{ warehouseId: string }>();
+
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["parcelStats"],
-    queryFn: getAllParcelsData,
+    queryFn: () => getAllParcelsData(params),
   });
 
   // Handle loading and error states

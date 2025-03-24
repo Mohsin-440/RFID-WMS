@@ -91,7 +91,7 @@ export const registerUser = async (
       message: "User registered successfully",
       data: newUser,
     });
-    
+
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({
@@ -133,7 +133,23 @@ export const getAllUsers = async (
   res: Response
 ): Promise<void> => {
   try {
+    const query = req.query as { warehouseId?: string };
+    if (!query.warehouseId || query.warehouseId === "undefined") {
+      res.status(400).json({
+        success: false,
+        message: "Warehouse id is required",
+      });
+      return;
+    }
+
     const users = await db.user.findMany({
+      where: {
+        warehouseUsers: {
+          every: {
+            warehouseId: query.warehouseId,
+          }
+        }
+      },
       select: {
         email: true,
         profilePicture: true,
@@ -141,6 +157,7 @@ export const getAllUsers = async (
         lastName: true,
         role: true,
       },
+
     });
 
     res.status(200).json({
@@ -148,6 +165,9 @@ export const getAllUsers = async (
       message: "Users retrieved successfully",
       data: users,
     });
+
+
+
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({

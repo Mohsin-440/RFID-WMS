@@ -236,14 +236,14 @@ const AddParcel: FC = () => {
   return (
     <Authenticate>
 
-      <Authorization roles={["Admin", "CounterMan"]} navigate={true}>
+      <Authorization roles={["Admin", "CounterMan", "Manager"]} navigate={true}>
         <section className=" min-h-screen p-5 ">
           <div className="flex justify-end">
-            <div className="m-5">
+            {/* <div className="m-5">
               {
                 tag?.rssiValue
               }
-            </div>
+            </div> */}
             <div className="m-5">
               {
                 tag?.epcId
@@ -276,7 +276,7 @@ const AddParcel: FC = () => {
                         <Loader2 className="animate-spin" />
                       </Button>
 
-                  : <h1 className="text-red-600">No writer configured at counter in this warehouse</h1>
+                  : <h1 className="bg-red-700 text-sm text-white p-3 rounded-full cursor-not-allowed h-fit">No writer configured at counter in this warehouse</h1>
                 : null
             }
 

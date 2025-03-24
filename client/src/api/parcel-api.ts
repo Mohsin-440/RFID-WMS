@@ -1,9 +1,9 @@
 import axios from "axios";
 import { GetAllParcels } from "@wsm/shared/types/getAllParcels"
-export const getAllParcelsData = async () => {
+export const getAllParcelsData = async ({ warehouseId }: { warehouseId: string }) => {
   try {
     const response = await axios.get<GetAllParcels["res"]>("http://localhost:4000/api/v1/parcel/all",
-      { withCredentials: true });
+      { withCredentials: true, params: { warehouseId } });
     return response.data.parcels;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {

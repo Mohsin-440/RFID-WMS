@@ -1,13 +1,16 @@
 "use client";
 import { getAllParcelsData } from "@/api/parcel-api";
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import React from "react";
 import { FaBoxOpen, FaShippingFast } from "react-icons/fa";
 
 const ParcelCards = () => {
+  const params = useParams<{ warehouseId: string }>();
+
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["parcelDetails"],
-    queryFn: getAllParcelsData,
+    queryFn: () => getAllParcelsData(params),
   });
 
   // Handle error state

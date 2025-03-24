@@ -1,13 +1,16 @@
 "use client";
 import { getAllParcelsData } from "@/api/parcel-api";
 import { useQuery } from "@tanstack/react-query";
+import { useParams } from "next/navigation";
 import { FiPackage } from "react-icons/fi";
 import { RadialBar, RadialBarChart, ResponsiveContainer } from "recharts";
 
 const CountChart = () => {
+  const params = useParams<{ warehouseId: string }>();
+
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["parcelDistribution"],
-    queryFn: getAllParcelsData,
+    queryFn: () => getAllParcelsData(params),
   });
 
   // Handle loading and error states

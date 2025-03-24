@@ -4,10 +4,20 @@ import React from 'react'
 import { useAutoplay } from './AutoplayProvider'
 import { Dialog, DialogContent, DialogTitle } from './ui/dialog'
 import { Button } from './ui/button'
+import { useParams } from 'next/navigation';
+import { useUserStore } from '@/store/user.store';
 
 const AutoplayPermissionPrompt = () => {
-    
+
     const { autoplayOn, setAutoplayOn } = useAutoplay();
+    const params = useParams<{ warehouseId: string }>()
+
+    const { userInfo } = useUserStore();
+    const currentWarehouse = userInfo?.warehouseUsers.find((warehouseUser) => warehouseUser.warehouse.id === params.warehouseId)
+    const readers = currentWarehouse?.warehouse.readers?.filter((reader) => reader.role === "Reader")
+
+    if (typeof readers?.length !== "undefined" && readers?.length <= 0)
+        return null;
 
     return (
         <Dialog open={!autoplayOn}>

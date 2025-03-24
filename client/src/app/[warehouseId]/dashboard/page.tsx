@@ -10,7 +10,7 @@ import React from "react";
 const Dashboard = () => {
   return (
     <Authenticate>
-      <Authorization roles={["Admin", "Manager", "Worker"]} navigate={false}>
+      <Authorization roles={["Admin", "Manager", "Worker", "CounterMan"]} navigate={false}>
         <div className="flex flex-col gap-6 py-6">
           <ParcelCards />
           <div className=" flex flex-col lg:flex-row  gap-6 px-4 py-2">

@@ -45,9 +45,7 @@ export const isAuthenticated = async (
       res.status(401).json({ message: "user not found" })
       return
     }
-    user?.warehouseUsers.forEach(warehouseUser => {
-      // console.log(warehouseUser.warehouse.readers)
-    })
+    
     const tokens = jwt.sign(
       { userId: user?.id, email: user?.email },
       process.env.JWT_SECRET as string,

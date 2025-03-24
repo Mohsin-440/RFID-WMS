@@ -1,20 +1,12 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { RxCross1 } from "react-icons/rx";
+import { TagWithParcelDetails } from "@wsm/shared/types/tagWithParcelDetails";
 
-type Tag = {
-    epcId: string;
-    readCount: number;
-    rssiValue: number;
-    antennaId: number;
-    frequency: number;
-    timestamp: number;
-};
-
-export const DispatchedParcelsColumns = (handleRemoveTag: { (epcId: string): void; }): ColumnDef<Tag>[] => {
+export const DispatchedParcelsColumns = (handleRemoveTag: { (epcId: string): void; }): ColumnDef<TagWithParcelDetails>[] => {
 
     return [
         {
-            accessorKey:"Sr #",
+            accessorKey: "Sr #",
             header: "Sr #",
             cell: ({ row }) => row.index + 1,
         },
@@ -24,10 +16,48 @@ export const DispatchedParcelsColumns = (handleRemoveTag: { (epcId: string): voi
             cell: ({ row }) => row.original.epcId,
         },
         {
-            accessorKey: "totalReads",
-            header: "Total Reads",
-            cell: ({ row }) => row.original.readCount,
+            accessorKey: "senderDetails",
+            header: "Sender Details",
+            cell: ({ row }) => {
+                const senderName = row.original.parcel.senderFirstName + " " + row.original.parcel.senderLastName;
+                const senderPhone = row.original.parcel.senderPhoneNumber;
+                return (
+                    <div className="flex flex-col">
+                        <p className="capitalize">{senderName}</p>
+                        <p className="capitalize">{senderPhone}</p>
+                    </div>
+                )
+            },
         },
+        {
+            accessorKey: "receiverDetails",
+            header: "Receiver Details",
+            cell: ({ row }) => {
+                const receiverName = row.original.parcel.receiverFirstName + " " + row.original.parcel.receiverLastName;
+                const receiverPhone = row.original.parcel.receiverPhoneNumber;
+                return (
+                    <div className="flex flex-col">
+                        <p className="capitalize">{receiverName}</p>
+                        <p className="capitalize">{receiverPhone}</p>
+                    </div>
+                )
+            },
+        },
+        {
+            accessorKey: "parcelStatus",
+            header: "Parcel Status",
+            cell: ({ row }) => {
+                return <span
+                    className={`p-2 rounded-full ${row.original.parcel.parcelStatuses[0].status === "Dispatched" ? "bg-green-300" : "bg-red-300"}`}>
+                    {row.original.parcel.parcelStatuses[0].status}
+                </span>;
+            },
+        },
+        // {
+        //     accessorKey: "totalReads",
+        //     header: "Total Reads",
+        //     cell: ({ row }) => row.original.readCount,
+        // },
         {
             id: "actions",
             header: "Actions",

@@ -158,8 +158,18 @@ export const allParcels = async (
   res: Response
 ): Promise<void> => {
   try {
+    const query = req.query as { warehouseId?: string };
+
+    if (!query.warehouseId || query.warehouseId === "undefined") {
+      res.status(400).json({
+        success: false,
+        message: "Warehouse id is required",
+      });
+      return;
+    }
 
     const parcels = await db.parcelDetails.findMany({
+      where: { warehouseId: query.warehouseId },
       include: {
         parcelStatuses: {
           select: {
@@ -215,7 +225,7 @@ export const singleParcel = async (req: Request, res: Response) => {
       } catch (error) {
 
       }
-      
+
     }
 
     const parcel = await db.parcelDetails.findUnique({

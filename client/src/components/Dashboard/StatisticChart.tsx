@@ -11,6 +11,7 @@ import {
   Tooltip,
 } from "chart.js";
 import { getAllParcelsData } from "@/api/parcel-api"; // Assuming this is your API function
+import { useParams } from "next/navigation";
 
 ChartJS.register(
   BarElement,
@@ -23,9 +24,11 @@ ChartJS.register(
 
 const ParcelStatistics: React.FC = () => {
   // Use react-query to fetch parcel data
+  const params = useParams<{ warehouseId: string }>();
+
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["parcelStats"],
-    queryFn: getAllParcelsData, // API function like in QuickStats
+    queryFn: () => getAllParcelsData(params), // API function like in QuickStats
   });
 
   // Handle loading and error states

@@ -22,7 +22,7 @@ const SwitchWarehouse = () => {
 
     return (
         <Authenticate>
-            <Authorization roles={["Admin", "Manager"]} navigate={true}>
+            <Authorization roles={["Admin"]} navigate>
                 <div className="px-10 py-5 bg-white m-5 rounded-lg">
                     <h1 className="text-2xl font-bold py-2">Switch Warehouses</h1>
                     <WarehouseSwitcher warehouses={data?.data as Warehouse[]} />

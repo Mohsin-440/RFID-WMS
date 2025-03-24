@@ -12,6 +12,7 @@ import { DispatchDataTable } from './DispatchedDataTable';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { TagWithParcelDetails } from "@wsm/shared/types/tagWithParcelDetails";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type ReaderDetails = {
     readerServerId: string;
@@ -75,6 +76,7 @@ const ParcelDispatch = () => {
             const updatedTags = structuredClone(prevTags);
 
             data.forEach(tag => {
+               
                 if (tag.epcId.length === 24 && (-1 * tag.rssiValue) >= 200) {
                     const existingTagIndex = updatedTags.findIndex(t => t.epcId === tag.epcId);
                     if (existingTagIndex !== -1) {
@@ -134,7 +136,7 @@ const ParcelDispatch = () => {
                     title: "Error",
                     duration: 5000,
                     variant: "destructive",
-                    description: "No parcels exist with this tag id",
+                    description: error.response?.data.message,
                 });
             }
         }
@@ -169,7 +171,7 @@ const ParcelDispatch = () => {
 
     return (
         <Authenticate>
-            <Authorization roles={["Admin", "Manager"]} navigate={true}>
+            <Authorization roles={["Admin", "Manager", "Worker"]} navigate={true}>
                 <>
                     <div className='flex flex-row-reverse justify-between'>
                         <div className="p-5 w-fit">
@@ -186,13 +188,32 @@ const ParcelDispatch = () => {
                                     </Button>
                                 )
                             ) : (
-                                <h1 className="text-red-600">No writer configured at this warehouse</h1>
+                                <h1 className="bg-red-700 text-sm text-white p-3 rounded-full cursor-not-allowed">No writer configured at this warehouse</h1>
                             )}
                         </div>
                         {
                             tagsWithParcelDetails.length > 0 && (
                                 <div className="p-5 w-fit">
-                                    <Button className="px-3 my-2" onClick={handleDispatchAllParcels}>Dispatch All Parcels</Button>
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={0}>
+                                            <TooltipTrigger asChild>
+                                                <div> {/* Wrapper div needed because disabled buttons can't trigger tooltips */}
+                                                    <Button
+                                                        className="px-3 my-2"
+                                                        onClick={handleDispatchAllParcels}
+                                                        disabled={readingTags}
+                                                    >
+                                                        Dispatch All Parcels
+                                                    </Button>
+                                                </div>
+                                            </TooltipTrigger>
+                                            {readingTags && (
+                                                <TooltipContent className='bg-red-500' side='right'>
+                                                    <p>Please stop scanning first to dispatch parcels</p>
+                                                </TooltipContent>
+                                            )}
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </div>
                             )
                         }

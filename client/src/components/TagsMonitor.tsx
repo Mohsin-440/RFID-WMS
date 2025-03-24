@@ -41,7 +41,7 @@ const TagsMonitor = () => {
     const { socket, socketStatuses } = useSocketStore()
     const { userInfo } = useUserStore();
 
-
+    console.log(userInfo)
     const [readerConnecting, setReaderConnecting] = useState(false)
     const [readerConnected, setReaderConnected] = useState(false)
     const [readingTags, setReadingTags] = useState(false)
@@ -104,7 +104,6 @@ const TagsMonitor = () => {
             return;
 
         const tempTags = structuredClone(tags)
-
         for (const datum of data) {
             if (datum.parcel.parcelStatuses[0].status === "Dispatched")
                 continue
